@@ -754,7 +754,11 @@ class SunMoon:
         return (None)
 
     # 21.06.19 JB: Just calc and return sunrise, transit and sunset
-    def GetSunRiseSet(self):
+    # 21.10.19 JB: Pass a datetime object for reinitialization
+    def GetSunRiseSet(self, dt=None):
+        if dt != None:
+            self.setDatetime(dt)
+
         JD0 = self.CalcJD(self.dt.day, self.dt.month, self.dt.year)        
         JD  = JD0 + (self.dt.hour - self.Zone + self.dt.minute/60.0 + self.dt.second / 3600.0) / 24.0                
         TDT = JD + self.deltaT / 24.0 / 3600.0
@@ -765,7 +769,8 @@ class SunMoon:
         #sunRise = SunRise(JD0, DeltaT, lon, lat, eval(print("Zone.value.replace(/,/,'.')), 0)
         SunRiseSet = self.SunRise(JD0, self.deltaT, lon, lat, self.Zone, 0)
 
-        return self.HHMM(SunRiseSet.rise)[0:5], self.HHMM(SunRiseSet.transit)[0:5], self.HHMM(SunRiseSet.set)[0:5]
+        #return self.HHMM(SunRiseSet.rise)[0:5], self.HHMM(SunRiseSet.transit)[0:5], self.HHMM(SunRiseSet.set)[0:5]
+        return self.ToTimestamp(SunRiseSet.rise, self.dt), self.ToTimestamp(SunRiseSet.transit, self.dt), self.ToTimestamp(SunRiseSet.set, self.dt)
         
 # END OF CLASS SunMoon
 

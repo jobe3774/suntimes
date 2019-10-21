@@ -21,7 +21,7 @@ from raspend.utils import dataacquisition as DataAcquisition
 from SunMoon import SunMoon
 
 class SunTimes():
-    def calc(self, dateStr, longitude: float, latitude: float):
+    def calc(self, dateStr, longitude, latitude):
         try:
             calcDate = datetime.strptime(dateStr, "%Y-%m-%d")
         except ValueError as e:
@@ -30,12 +30,12 @@ class SunTimes():
         sunMoon = SunMoon(float(longitude), float(latitude), calcDate)
         sunRiseSet = sunMoon.GetSunRiseSet()
 
-        sunTimesDict = { "SunTimes" : {"Sunrise": "--:--", "Culmination" : "--:--", "Sundown": "--:--", "Date": ""} }
+        sunTimesDict = { "SunTimes" : {"Sunrise": "--:--", "Culmination" : "--:--", "Sunset": "--:--", "Date": ""} }
 
         sunTimesDict["SunTimes"]["Date"] = dateStr
         sunTimesDict["SunTimes"]["Sunrise"] = sunRiseSet[0]
         sunTimesDict["SunTimes"]["Culmination"] = sunRiseSet[1]
-        sunTimesDict["SunTimes"]["Sundown"] = sunRiseSet[2]
+        sunTimesDict["SunTimes"]["Sunset"] = sunRiseSet[2]
 
         return sunTimesDict
 
