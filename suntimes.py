@@ -12,16 +12,28 @@
 #  Copyright (c) 2019 Joerg Beckers
 
 import argparse
-
-from datetime import datetime, timedelta
-
-from raspend.application import RaspendApplication
-from raspend.utils import dataacquisition as DataAcquisition
-
+from datetime import datetime, timedelta, timezone
+from raspend import RaspendApplication
 from SunMoon import SunMoon
 
+def to_bool(value):
+    """
+       Converts 'something' to boolean. Raises exception for invalid formats
+           Possible True  values: 1, True, "1", "TRue", "yes", "y", "t"
+           Possible False values: 0, False, None, [], {}, "", "0", "faLse", "no", "n", "f", 0.0, ...
+
+       thanks to Petrucio (see https://stackoverflow.com/a/9333816)
+    """
+    if str(value).lower() in ("yes", "y", "true",  "t", "1"): return True
+    if str(value).lower() in ("no",  "n", "false", "f", "0", "0.0", "", "none", "[]", "{}"): return False
+    raise Exception('Invalid value for boolean conversion: ' + str(value))
+
 class SunTimes():
-    def calc(self, dateStr, longitude, latitude):
+    def calc(self, 
+             dateStr : "Date formatted as YYYY-MM-DD", 
+             longitude : "Longitude of location", 
+             latitude : "Latitude of location", 
+             asISO : "True: Times will be formatted as ISO8601 (UTC), False: Unix timestamp (UTC)" = False):
         try:
             calcDate = datetime.strptime(dateStr, "%Y-%m-%d")
         except ValueError as e:
@@ -30,12 +42,16 @@ class SunTimes():
         sunMoon = SunMoon(float(longitude), float(latitude), calcDate)
         sunRiseSet = sunMoon.GetSunRiseSet()
 
-        sunTimesDict = { "SunTimes" : {"Sunrise": "--:--", "Culmination" : "--:--", "Sunset": "--:--", "Date": ""} }
+        sunTimesDict = { "SunTimes" : {"Sunrise": 0, "Culmination" : 0, "Sunset": 0} }
 
-        sunTimesDict["SunTimes"]["Date"] = dateStr
-        sunTimesDict["SunTimes"]["Sunrise"] = sunRiseSet[0]
-        sunTimesDict["SunTimes"]["Culmination"] = sunRiseSet[1]
-        sunTimesDict["SunTimes"]["Sunset"] = sunRiseSet[2]
+        if to_bool(asISO):
+            sunTimesDict["SunTimes"]["Sunrise"] = datetime.fromtimestamp(sunRiseSet[0], tz=timezone.utc).isoformat()
+            sunTimesDict["SunTimes"]["Culmination"] = datetime.fromtimestamp(sunRiseSet[1], tz=timezone.utc).isoformat()
+            sunTimesDict["SunTimes"]["Sunset"] = datetime.fromtimestamp(sunRiseSet[2], tz=timezone.utc).isoformat()
+        else:
+            sunTimesDict["SunTimes"]["Sunrise"] = sunRiseSet[0]
+            sunTimesDict["SunTimes"]["Culmination"] = sunRiseSet[1]
+            sunTimesDict["SunTimes"]["Sunset"] = sunRiseSet[2]
 
         return sunTimesDict
 
